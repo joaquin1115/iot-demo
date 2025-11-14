@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "author": "Grupo-4",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": -40,
+      "left": -40,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "tempAmasado",
+      "top": -200,
+      "left": 250,
+      "attrs": { "temperature": "25.5", "humidity": "0" }
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "humAmasado",
+      "top": -50,
+      "left": 250,
+      "attrs": { "temperature": "0", "humidity": "60" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledVerde",
+      "top": 120,
+      "left": 180,
+      "attrs": { "color": "green" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledAmarillo",
+      "top": 160,
+      "left": 180,
+      "attrs": { "color": "yellow" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledRojo",
+      "top": 200,
+      "left": 180,
+      "attrs": { "color": "red" }
+    }
+  ],
+  "connections": [
+    ["esp:3V3", "tempAmasado:VCC", "red", []],
+    ["esp:3V3", "humAmasado:VCC", "red", []],
+    ["esp:GND.1", "tempAmasado:GND", "black", []],
+    ["esp:GND.1", "humAmasado:GND", "black", []],
+    ["esp:15", "tempAmasado:SDA", "green", []],
+    ["esp:4", "humAmasado:SDA", "green", []],
+
+    ["esp:13", "ledVerde:A", "green", []],
+    ["esp:12", "ledAmarillo:A", "green", []],
+    ["esp:14", "ledRojo:A", "green", []],
+
+    ["ledVerde:C", "esp:GND.2", "black", []],
+    ["ledAmarillo:C", "esp:GND.2", "black", []],
+    ["ledRojo:C", "esp:GND.2", "black", []],
+
+    ["esp:TX", "$serialMonitor:RX", "", []],
+    ["esp:RX", "$serialMonitor:TX", "", []]
+  ],
+  "serialMonitor": { "display": "terminal", "newline": "lf" }
+}
