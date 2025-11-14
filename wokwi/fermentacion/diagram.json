@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "author": "Grupo4",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": -40, "left": -120, "attrs": {} },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -86.1,
+      "left": 90.6,
+      "attrs": { "label": "DHT22 #1" }
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht2",
+      "top": 125.1,
+      "left": 71.4,
+      "attrs": { "label": "DHT22 #2" }
+    },
+    {
+      "type": "wokwi-gas-sensor",
+      "id": "gas_co",
+      "top": -45.3,
+      "left": -329,
+      "attrs": { "label": "MQ-7 (CO)" }
+    },
+    {
+      "type": "wokwi-gas-sensor",
+      "id": "gas_co2",
+      "top": 50.7,
+      "left": -329,
+      "attrs": { "label": "MQ-135 (CO₂)" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledGreen",
+      "top": 15.6,
+      "left": 3.8,
+      "attrs": { "color": "green" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledYellow",
+      "top": 73.2,
+      "left": 3.8,
+      "attrs": { "color": "yellow" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "ledRed",
+      "top": 121.2,
+      "left": 3.8,
+      "attrs": { "color": "red" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "dht1:VCC", "esp:3V3", "red", [] ],
+    [ "dht1:GND", "esp:GND.1", "black", [] ],
+    [ "dht1:SDA", "esp:15", "green", [] ],
+    [ "dht2:VCC", "esp:3V3", "red", [] ],
+    [ "dht2:GND", "esp:GND.2", "black", [] ],
+    [ "dht2:SDA", "esp:4", "green", [] ],
+    [ "gas_co:VCC", "esp:3V3", "red", [] ],
+    [ "gas_co:GND", "esp:GND.3", "black", [] ],
+    [ "gas_co:AOUT", "esp:34", "yellow", [] ],
+    [ "gas_co:DOUT", "esp:32", "orange", [] ],
+    [ "gas_co2:VCC", "esp:3V3", "red", [] ],
+    [ "gas_co2:GND", "esp:GND.4", "black", [] ],
+    [ "gas_co2:AOUT", "esp:35", "blue", [] ],
+    [ "gas_co2:AOUT", "esp:33", "orange", [] ],
+    [ "ledGreen:A", "esp:21", "green", [] ],
+    [ "ledGreen:C", "esp:GND.1", "black", [] ],
+    [ "ledYellow:A", "esp:19", "yellow", [] ],
+    [ "ledYellow:C", "esp:GND.1", "black", [] ],
+    [ "ledRed:A", "esp:18", "red", [] ],
+    [ "ledRed:C", "esp:GND.1", "black", [] ]
+  ],
+  "dependencies": {}
+}
