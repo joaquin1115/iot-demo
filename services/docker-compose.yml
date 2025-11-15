@@ -1,0 +1,137 @@
+services:
+  # ========== Servicio 1: Ingestion API ==========
+  ingestion-api:
+    build: ./ingestion-api
+    container_name: ingestion-api
+    ports:
+      - "8001:8000"
+    environment:
+      - THINGSBOARD_URL=${THINGSBOARD_URL}
+      - TB_AMASADO_TOKEN=${TB_AMASADO_TOKEN}
+      - TB_FERMENTACION_TOKEN=${TB_FERMENTACION_TOKEN}
+      - WEBSOCKET_URL=http://websocket-gateway:8000
+    depends_on:
+      - websocket-gateway
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # ========== Servicio 2: Scheduler ==========
+  scheduler-service:
+    build: ./scheduler-service
+    container_name: scheduler-service
+    environment:
+      - ORCHESTRATOR_URL=http://predictor-orchestrator:8000
+      - DATASET_PATH=/dataset/images
+      - SCHEDULE_INTERVAL=60
+      - NUM_IMAGES=20
+    volumes:
+      - ./dataset:/dataset:ro
+    depends_on:
+      - predictor-orchestrator
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # ========== Servicio 3: Predictor Orchestrator ==========
+  predictor-orchestrator:
+    build: ./predictor-orchestrator
+    container_name: predictor-orchestrator
+    ports:
+      - "8002:8000"
+    environment:
+      - ML_SERVICE_COLOR_URL=http://ml-service-color:8000
+      - ML_SERVICE_TEXTURE_URL=http://ml-service-texture:8000
+      - ML_SERVICE_SIZE_URL=http://ml-service-size:8000
+      - THINGSBOARD_URL=${THINGSBOARD_URL}
+      - TB_PREDICTIONS_TOKEN=${TB_PREDICTIONS_TOKEN}
+      - WEBSOCKET_URL=http://websocket-gateway:8000
+    depends_on:
+      - ml-service-color
+      - ml-service-texture
+      - ml-service-size
+      - websocket-gateway
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # ========== Servicio 4: ML Service - Color ==========
+  ml-service-color:
+    build: ./ml-service-color
+    container_name: ml-service-color
+    ports:
+      - "8101:8000"
+    environment:
+      - MODEL_PATH=/models/modelo_color.h5
+    volumes:
+      - ./models:/models:ro
+      - ./dataset:/dataset:ro
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # ========== Servicio 5: ML Service - Texture (placeholder) ==========
+  ml-service-texture:
+    build: ./ml-service-texture
+    container_name: ml-service-texture
+    ports:
+      - "8102:8000"
+    environment:
+      - MODEL_PATH=/models/modelo_texture.h5
+    volumes:
+      - ./models:/models:ro
+      - ./dataset:/dataset:ro
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # ========== Servicio 6: ML Service - Size (placeholder) ==========
+  ml-service-size:
+    build: ./ml-service-size
+    container_name: ml-service-size
+    ports:
+      - "8103:8000"
+    environment:
+      - MODEL_PATH=/models/modelo_size.h5
+    volumes:
+      - ./models:/models:ro
+      - ./dataset:/dataset:ro
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # ========== Servicio 7: WebSocket Gateway ==========
+  websocket-gateway:
+    build: ./websocket-gateway
+    container_name: websocket-gateway
+    ports:
+      - "8003:8000"
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+  # ========== Servicio 8: Dashboard ==========
+  dashboard:
+    build: ./dashboard
+    container_name: dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_WS_URL=ws://localhost:8003
+      - REACT_APP_INGESTION_API=http://localhost:8001
+      - REACT_APP_ORCHESTRATOR_API=http://localhost:8002
+    depends_on:
+      - websocket-gateway
+      - ingestion-api
+      - predictor-orchestrator
+    networks:
+      - iot-network
+    restart: unless-stopped
+
+networks:
+  iot-network:
+    driver: bridge
+
+volumes:
+  dataset:
+  models:
