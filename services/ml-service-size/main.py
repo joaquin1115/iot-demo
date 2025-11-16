@@ -43,9 +43,6 @@ class PredictionResponse(BaseModel):
     image: str
     width_mm: float
     height_mm: float
-    volume_ml: float
-    estado: str
-    confidence: float
 
 @app.get("/")
 async def root():

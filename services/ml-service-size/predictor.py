@@ -95,27 +95,13 @@ class SizePredictor:
             width_mm = float(pred[0])
             height_mm = float(pred[1])
             
-            # Calcular volumen aproximado (cilindro)
-            # V = π * r² * h, donde r = width/2
-            radius_mm = width_mm / 2
-            volume_ml = (np.pi * (radius_mm ** 2) * height_mm) / 1000  # mm³ a ml
-            
-            # Clasificar tamaño (ajustar umbrales según tu modelo)
-            # Ejemplo: pan correcto entre 80-120mm de ancho
-            is_correct_size = 80 <= width_mm <= 120
-            prediction = 0 if is_correct_size else 1
-            
             logger.info(f"Size prediction for {os.path.basename(image_path)}: "
                        f"width={width_mm:.2f}mm, height={height_mm:.2f}mm")
             
             return {
                 "image": os.path.basename(image_path),
-                "prediction": prediction,
                 "width_mm": round(width_mm, 2),
-                "height_mm": round(height_mm, 2),
-                "volume_ml": round(volume_ml, 2),
-                "estado": "Tamaño correcto" if prediction == 0 else "Tamaño incorrecto",
-                "confidence": 0.85  # Puedes calcular confianza basada en distancia a rangos
+                "height_mm": round(height_mm, 2)
             }
             
         except Exception as e:
