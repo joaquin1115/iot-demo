@@ -64,7 +64,7 @@ def get_random_images(dataset_path: str, num_images: int) -> list:
 def trigger_predictions():
     """
     Tarea que se ejecuta cada minuto.
-    Selecciona imágenes aleatorias y dispara el orquestador.
+    Selecciona imágenes aleatorias de cada dataset y dispara el orquestador.
     """
     logger.info("")
     logger.info("=" * 70)
@@ -72,43 +72,56 @@ def trigger_predictions():
     logger.info("=" * 70)
     
     try:
-        # 1. Seleccionar imágenes
-        logger.info(f"📁 Scanning dataset: {settings.DATASET_PATH}")
-        images = get_random_images(settings.DATASET_PATH, settings.NUM_IMAGES)
+        # Seleccionar imágenes de cada dataset
+        logger.info(f"📁 Scanning datasets...")
         
-        if not images:
-            logger.warning("⚠️  No images selected, skipping task")
+        color_images = get_random_images(settings.DATASET_COLOR_PATH, settings.NUM_IMAGES)
+        texture_images = get_random_images(settings.DATASET_TEXTURE_PATH, settings.NUM_IMAGES)
+        size_images = get_random_images(settings.DATASET_SIZE_PATH, settings.NUM_IMAGES)
+        
+        # Verificar que al menos tenemos imágenes de color
+        if not color_images:
+            logger.warning("⚠️  No color images found, skipping task")
             return
         
-        logger.info(f"🖼️  Selected {len(images)} images:")
-        for i, img in enumerate(images[:3], 1):
-            logger.info(f"   {i}. {Path(img).name}")
-        if len(images) > 3:
-            logger.info(f"   ... and {len(images) - 3} more")
+        logger.info(f"🖼️  Selected images:")
+        logger.info(f"   Color: {len(color_images)} images")
+        logger.info(f"   Texture: {len(texture_images)} images")
+        logger.info(f"   Size: {len(size_images)} images")
         
-        # 2. Preparar payload
+        # Mostrar primeras 3 imágenes de color
+        for i, img in enumerate(color_images[:3], 1):
+            logger.info(f"     {i}. {Path(img).name}")
+        if len(color_images) > 3:
+            logger.info(f"     ... and {len(color_images) - 3} more")
+        
+        # Preparar payload con las 3 listas de imágenes
         payload = {
-            "images": images
+            "color_images": color_images,
+            "texture_images": texture_images,
+            "size_images": size_images
         }
         
-        # 3. Llamar al orchestrator
+        # Llamar al orchestrator
         url = f"{settings.ORCHESTRATOR_URL}/predict-batch"
         logger.info(f"📡 Calling orchestrator: {url}")
         
         response = requests.post(
             url,
             json=payload,
-            timeout=300  # 5 minutos (los modelos pueden tardar)
+            timeout=300  # 5 minutos
         )
         
         response.raise_for_status()
         result = response.json()
         
-        # 4. Log resultado
+        # Log resultado
         logger.info("")
         logger.info("✅ PREDICTIONS COMPLETED SUCCESSFULLY")
-        logger.info(f"   📊 Total images: {result.get('total_images', 0)}")
-        logger.info(f"   ✔️  Processed: {result.get('total_processed', 0)}")
+        logger.info(f"   📊 Total images processed: {result.get('total_processed', 0)}")
+        logger.info(f"   ✔️  Color: {result.get('color_processed', 0)}")
+        logger.info(f"   ✔️  Texture: {result.get('texture_processed', 0)}")
+        logger.info(f"   ✔️  Size: {result.get('size_processed', 0)}")
         logger.info(f"   📤 Sent to ThingsBoard: {result.get('success', False)}")
         
     except requests.exceptions.Timeout:
@@ -134,17 +147,36 @@ def main():
     logger.info("=" * 70)
     logger.info(f"⚙️  Configuration:")
     logger.info(f"   📍 Orchestrator URL: {settings.ORCHESTRATOR_URL}")
-    logger.info(f"   📁 Dataset path: {settings.DATASET_PATH}")
+    logger.info(f"   📁 Color dataset: {settings.DATASET_COLOR_PATH}")
+    logger.info(f"   📁 Texture dataset: {settings.DATASET_TEXTURE_PATH}")
+    logger.info(f"   📁 Size dataset: {settings.DATASET_SIZE_PATH}")
     logger.info(f"   ⏱️  Interval: {settings.SCHEDULE_INTERVAL} seconds")
     logger.info(f"   🖼️  Images per batch: {settings.NUM_IMAGES}")
     logger.info("=" * 70)
     logger.info("")
     
-    # Verificar que el dataset existe
-    if not Path(settings.DATASET_PATH).exists():
-        logger.error(f"❌ Dataset path does not exist: {settings.DATASET_PATH}")
+    # Verificar que al menos el dataset de color existe
+    if not Path(settings.DATASET_COLOR_PATH).exists():
+        logger.error(f"❌ Color dataset path does not exist: {settings.DATASET_COLOR_PATH}")
         logger.error("   Please mount the dataset volume correctly")
         return
+    
+    logger.info(f"✅ Color dataset found: {settings.DATASET_COLOR_PATH}")
+    
+    # Verificar datasets opcionales
+    if not Path(settings.DATASET_TEXTURE_PATH).exists():
+        logger.warning(f"⚠️  Texture dataset not found: {settings.DATASET_TEXTURE_PATH}")
+        logger.warning("   Texture predictions will be skipped")
+    else:
+        logger.info(f"✅ Texture dataset found: {settings.DATASET_TEXTURE_PATH}")
+    
+    if not Path(settings.DATASET_SIZE_PATH).exists():
+        logger.warning(f"⚠️  Size dataset not found: {settings.DATASET_SIZE_PATH}")
+        logger.warning("   Size predictions will be skipped")
+    else:
+        logger.info(f"✅ Size dataset found: {settings.DATASET_SIZE_PATH}")
+    
+    logger.info("")
     
     # Crear scheduler
     scheduler = BlockingScheduler()

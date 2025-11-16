@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-from .config import settings
-from .services.thingsboard import ThingsBoardClient
-from .services.websocket_client import WebSocketEmitter
-from .routers import amasado, fermentacion
+from config import settings
+from services.thingsboard import ThingsBoardClient
+from services.websocket_client import WebSocketEmitter
+from routers import amasado, fermentacion
 
 # Configurar logging
 logging.basicConfig(

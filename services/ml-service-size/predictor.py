@@ -147,7 +147,7 @@ class ColorPredictor:
             
             return {
                 "image": os.path.basename(image_path),
-                "prediction": float(clase),
+                "prediction": clase,
                 "probability": float(prob),
                 "estado": "Quemado" if clase == 1 else "Normal",
                 "confidence": float(prob if clase == 1 else 1 - prob),

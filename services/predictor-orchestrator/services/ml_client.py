@@ -88,4 +88,3 @@ class MLOrchestrator:
         
         logger.info(f"✅ Predictions completed for {image_path}")
         return prediction
-

@@ -24,4 +24,3 @@ class Settings:
     ML_TIMEOUT = 120.0
 
 settings = Settings()
-

@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 import logging
 import os
-from .predictor import ColorPredictor
+from predictor import ColorPredictor
 
 # Configurar logging
 logging.basicConfig(
