@@ -9,7 +9,6 @@ router = APIRouter(prefix="/fermentacion", tags=["fermentacion"])
 class FermentacionData(BaseModel):
     proceso: str = Field(default="fermentacion")
     sensor_id: str
-    nro_lote: str
     temperatura: float
     humedad: float
     co: float
@@ -23,10 +22,10 @@ async def receive_fermentacion(data: FermentacionData):
     """
     Recibe datos del proceso de fermentación desde Wokwi.
     """
-    from ..main import tb_client, ws_emitter
-    from ..config import settings
+    from main import tb_client, ws_emitter
+    from config import settings
     
-    logger.info(f"📥 Received fermentacion data: lote={data.nro_lote}, temp={data.temperatura}°C, CO2={data.co2}")
+    logger.info(f"📥 Received fermentacion data: temp={data.temperatura}°C, CO2={data.co2}")
     
     # Enviar a ThingsBoard
     success = await tb_client.send_telemetry(

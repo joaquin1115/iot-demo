@@ -9,7 +9,6 @@ router = APIRouter(prefix="/amasado", tags=["amasado"])
 class AmasadoData(BaseModel):
     proceso: str = Field(default="amasado")
     sensor_id: str
-    nro_lote: str
     temperature: float
     humidity: float
     estado: str
@@ -21,10 +20,10 @@ async def receive_amasado(data: AmasadoData):
     """
     Recibe datos del proceso de amasado desde Wokwi.
     """
-    from ..main import tb_client, ws_emitter
-    from ..config import settings
+    from main import tb_client, ws_emitter
+    from config import settings
     
-    logger.info(f"📥 Received amasado data: lote={data.nro_lote}, temp={data.temperature}°C")
+    logger.info(f"📥 Received amasado data: temp={data.temperature}°C")
     
     # Enviar a ThingsBoard
     success = await tb_client.send_telemetry(

@@ -1,0 +1,15 @@
+# ThingsBoard Configuration
+THINGSBOARD_URL=https://thingsboard.cloud
+
+# ThingsBoard Access Tokens
+# Obtener estos tokens desde ThingsBoard al crear los devices
+TB_AMASADO_TOKEN=57UX4yTIHclFhHGey05j
+TB_FERMENTACION_TOKEN=jvOweVWXEq4DIcPo6uOU
+
+TB_PREDICTIONS_COLOR_TOKEN=gtUcPgNImrqtubCNT1LL
+TB_PREDICTIONS_TEXTURE_TOKEN=LNGxGVu6FtlSM1BEmKKh
+TB_PREDICTIONS_SIZE_TOKEN=IyfeBcAmVdbqDn4qz3pW
+
+# Scheduler Configuration
+SCHEDULE_INTERVAL=60
+NUM_IMAGES=20
