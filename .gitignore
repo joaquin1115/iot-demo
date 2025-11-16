@@ -114,27 +114,27 @@ dmypy.json
 # ============================================
 # Modelos entrenados (IMPORTANTE: no subir modelos pesados)
 # .h5
-ml/*.hdf5
-ml/*.pkl
-ml/*.pth
-ml/*.pt
-ml/*.onnx
-ml/*.pb
-ml/*.tflite
-ml/*.ckpt
-ml/*.safetensors
+ml/**/*.hdf5
+ml/**/*.pkl
+ml/**/*.pth
+ml/**/*.pt
+ml/**/*.onnx
+ml/**/*.pb
+ml/**/*.tflite
+ml/**/*.ckpt
+ml/**/*.safetensors
 
 # Mantener estructura pero no archivos
 !ml/.gitkeep
 !ml/README.md
 
 # Datasets (imágenes pueden ser muy pesadas)
-ml/*.jpg
-ml/*.jpeg
-ml/*.png
-ml/*.bmp
-ml/*.tiff
-ml/*.webp
+ml/**/*.jpg
+ml/**/*.jpeg
+ml/**/**/*.png
+ml/**/*.bmp
+ml/**/*.tiff
+ml/**/*.webp
 dataset/test/
 dataset/train/
 dataset/val/

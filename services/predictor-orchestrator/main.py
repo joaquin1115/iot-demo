@@ -34,13 +34,17 @@ ws_emitter = WebSocketEmitter(settings.WEBSOCKET_URL)
 
 # Modelos Pydantic
 class PredictBatchRequest(BaseModel):
-    images: List[str] = Field(..., description="Lista de rutas a imágenes")
+    color_images: List[str] = Field(default=[], description="Lista de rutas a imágenes para análisis de color")
+    texture_images: List[str] = Field(default=[], description="Lista de rutas a imágenes para análisis de textura")
+    size_images: List[str] = Field(default=[], description="Lista de rutas a imágenes para análisis de tamaño")
 
 class PredictBatchResponse(BaseModel):
-    total_images: int
     total_processed: int
+    color_processed: int
+    texture_processed: int
+    size_processed: int
     success: bool
-    predictions: List[dict]
+    predictions: dict
     timestamp: float
 
 @app.get("/")

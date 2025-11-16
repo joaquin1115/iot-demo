@@ -22,11 +22,16 @@ services:
     container_name: scheduler-service
     environment:
       - ORCHESTRATOR_URL=http://predictor-orchestrator:8000
-      - DATASET_PATH=/dataset/images
+      - DATASET_COLOR_PATH=/datasets/color
+      - DATASET_TEXTURE_PATH=/datasets/texture
+      - DATASET_SIZE_PATH=/datasets/size
       - SCHEDULE_INTERVAL=60
       - NUM_IMAGES=20
     volumes:
-      - ./dataset:/dataset:ro
+      # El scheduler necesita acceso a TODOS los datasets para seleccionar imágenes
+      - ../ml/datasets/dataset-color:/datasets/color:ro
+      - ../ml/datasets/dataset-texture:/datasets/texture:ro
+      - ../ml/datasets/dataset-size:/datasets/size:ro
     depends_on:
       - predictor-orchestrator
     networks:
@@ -64,8 +69,10 @@ services:
     environment:
       - MODEL_PATH=/models/modelo_color.h5
     volumes:
-      - ./models:/models:ro
-      - ./dataset:/dataset:ro
+      # Solo monta el modelo (read-only)
+      - ../ml/models/modelo_color.h5:/models/modelo_color.h5:ro
+      # Monta el dataset para poder leer las imágenes por ruta
+      - ../ml/datasets/dataset-color:/datasets/color:ro
     networks:
       - iot-network
     restart: unless-stopped
@@ -79,8 +86,10 @@ services:
     environment:
       - MODEL_PATH=/models/modelo_texture.h5
     volumes:
-      - ./models:/models:ro
-      - ./dataset:/dataset:ro
+      # Solo monta el modelo (read-only)
+      - ../ml/models/modelo_texture.h5:/models/modelo_texture.h5:ro
+      # Monta el dataset para poder leer las imágenes por ruta
+      - ../ml/datasets/dataset-texture:/datasets/texture:ro
     networks:
       - iot-network
     restart: unless-stopped
@@ -94,8 +103,10 @@ services:
     environment:
       - MODEL_PATH=/models/modelo_size.h5
     volumes:
-      - ./models:/models:ro
-      - ./dataset:/dataset:ro
+      # Solo monta el modelo (read-only)
+      - ../ml/models/modelo_size.h5:/models/modelo_size.h5:ro
+      # Monta el dataset para poder leer las imágenes por ruta
+      - ../ml/datasets/dataset-size:/datasets/size:ro
     networks:
       - iot-network
     restart: unless-stopped
@@ -111,27 +122,24 @@ services:
     restart: unless-stopped
 
   # ========== Servicio 8: Dashboard ==========
-  dashboard:
-    build: ./dashboard
-    container_name: dashboard
-    ports:
-      - "3000:3000"
-    environment:
-      - REACT_APP_WS_URL=ws://localhost:8003
-      - REACT_APP_INGESTION_API=http://localhost:8001
-      - REACT_APP_ORCHESTRATOR_API=http://localhost:8002
-    depends_on:
-      - websocket-gateway
-      - ingestion-api
-      - predictor-orchestrator
-    networks:
-      - iot-network
-    restart: unless-stopped
+  # NOTA: Comentado temporalmente hasta crear el dashboard
+  # dashboard:
+  #   build: ./dashboard
+  #   container_name: dashboard
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - REACT_APP_WS_URL=ws://localhost:8003
+  #     - REACT_APP_INGESTION_API=http://localhost:8001
+  #     - REACT_APP_ORCHESTRATOR_API=http://localhost:8002
+  #   depends_on:
+  #     - websocket-gateway
+  #     - ingestion-api
+  #     - predictor-orchestrator
+  #   networks:
+  #     - iot-network
+  #   restart: unless-stopped
 
 networks:
   iot-network:
     driver: bridge
-
-volumes:
-  dataset:
-  models:
