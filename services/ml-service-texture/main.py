@@ -1,52 +1,92 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, status
+from pydantic import BaseModel, Field
 import logging
 import os
-import random
+import sys
 
-logging.basicConfig(level=logging.INFO)
+# Agregar directorio actual al path
+sys.path.insert(0, os.path.dirname(__file__))
+
+from predictor import TexturePredictor
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="ML Service - Texture", version="1.0.0")
+# Configuración
+MODEL_PATH = os.getenv("MODEL_PATH", "/models/modelo_texture.h5")
+IMG_SIZE = int(os.getenv("IMG_SIZE", "224"))
 
+# Crear app
+app = FastAPI(
+    title="ML Service - Texture",
+    description="Servicio de predicción de textura de pan",
+    version="1.0.0"
+)
+
+# Cargar modelo al inicio
+try:
+    predictor = TexturePredictor(MODEL_PATH, IMG_SIZE)
+except Exception as e:
+    logger.error(f"Failed to load model: {e}")
+    predictor = None
+
+# Modelos Pydantic
 class PredictionRequest(BaseModel):
-    image_path: str
+    image_path: str = Field(..., description="Ruta absoluta a la imagen")
 
 class PredictionResponse(BaseModel):
     image: str
-    prediction: int
-    estado: str
-    confidence: float
     texture_score: float
 
 @app.get("/")
 async def root():
     return {
         "service": "ML Service - Texture",
-        "status": "running (placeholder)",
-        "note": "This is a placeholder. Implement your texture model here."
+        "status": "running" if predictor else "model not loaded",
+        "model_path": MODEL_PATH,
+        "img_size": IMG_SIZE
     }
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    if predictor is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Model not loaded"
+        )
+    return {"status": "healthy", "model": "loaded"}
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(request: PredictionRequest):
     """
-    Placeholder: retorna predicción simulada.
-    TODO: Implementar modelo real de textura.
+    Predice la textura del pan.
     """
-    logger.info(f"Texture prediction (simulated) for {request.image_path}")
+    if predictor is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Model not loaded"
+        )
     
-    # Simulación
-    prediction = random.choice([0, 1])
-    confidence = random.uniform(0.7, 0.95)
+    if not os.path.exists(request.image_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Image not found: {request.image_path}"
+        )
     
-    return PredictionResponse(
-        image=os.path.basename(request.image_path),
-        prediction=prediction,
-        estado="Buena textura" if prediction == 0 else "Mala textura",
-        confidence=confidence,
-        texture_score=random.uniform(0.5, 1.0)
-    )
+    try:
+        result = predictor.predict(request.image_path)
+        return result
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Prediction failed: {str(e)}"
+        )
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -37,7 +37,6 @@ class PredictionResponse(BaseModel):
     prediction: int = Field(..., description="0 = Normal, 1 = Quemado")
     probability: float
     estado: str
-    confidence: float
     color_oscuro_r: float
     color_oscuro_g: float
     color_oscuro_b: float

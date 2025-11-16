@@ -49,7 +49,9 @@ services:
       - ML_SERVICE_TEXTURE_URL=http://ml-service-texture:8000
       - ML_SERVICE_SIZE_URL=http://ml-service-size:8000
       - THINGSBOARD_URL=${THINGSBOARD_URL}
-      - TB_PREDICTIONS_TOKEN=${TB_PREDICTIONS_TOKEN}
+      - TB_PREDICTIONS_COLOR_TOKEN=${TB_PREDICTIONS_COLOR_TOKEN}
+      - TB_PREDICTIONS_TEXTURE_TOKEN=${TB_PREDICTIONS_TEXTURE_TOKEN}
+      - TB_PREDICTIONS_SIZE_TOKEN=${TB_PREDICTIONS_SIZE_TOKEN}
       - WEBSOCKET_URL=http://websocket-gateway:8000
     depends_on:
       - ml-service-color
@@ -70,14 +72,14 @@ services:
       - MODEL_PATH=/models/modelo_color.h5
     volumes:
       # Solo monta el modelo (read-only)
-      - ../ml/models/modelo_color.h5:/models/modelo_color.h5:ro
+      - ../ml/models/modelo-color/modelo_color.h5:/models/modelo_color.h5:ro
       # Monta el dataset para poder leer las imágenes por ruta
       - ../ml/datasets/dataset-color:/datasets/color:ro
     networks:
       - iot-network
     restart: unless-stopped
 
-  # ========== Servicio 5: ML Service - Texture (placeholder) ==========
+  # ========== Servicio 5: ML Service - Texture ==========
   ml-service-texture:
     build: ./ml-service-texture
     container_name: ml-service-texture
@@ -87,14 +89,14 @@ services:
       - MODEL_PATH=/models/modelo_texture.h5
     volumes:
       # Solo monta el modelo (read-only)
-      - ../ml/models/modelo_texture.h5:/models/modelo_texture.h5:ro
+      - ../ml/models/modelo-texture/modelo_texture.h5:/models/modelo_texture.h5:ro
       # Monta el dataset para poder leer las imágenes por ruta
       - ../ml/datasets/dataset-texture:/datasets/texture:ro
     networks:
       - iot-network
     restart: unless-stopped
 
-  # ========== Servicio 6: ML Service - Size (placeholder) ==========
+  # ========== Servicio 6: ML Service - Size ==========
   ml-service-size:
     build: ./ml-service-size
     container_name: ml-service-size
@@ -102,9 +104,11 @@ services:
       - "8103:8000"
     environment:
       - MODEL_PATH=/models/modelo_size.h5
+      - CONFIG_PATH=/models/config.json
+      - SCALER_PATH=/models/output_scaler.pkl
     volumes:
-      # Solo monta el modelo (read-only)
-      - ../ml/models/modelo_size.h5:/models/modelo_size.h5:ro
+      # Solo monta los modelos (read-only)
+      - ../ml/models/modelo-size:/models:ro
       # Monta el dataset para poder leer las imágenes por ruta
       - ../ml/datasets/dataset-size:/datasets/size:ro
     networks:

@@ -9,9 +9,11 @@ class Settings:
     ML_TEXTURE_URL = os.getenv("ML_SERVICE_TEXTURE_URL", "http://ml-service-texture:8000")
     ML_SIZE_URL = os.getenv("ML_SERVICE_SIZE_URL", "http://ml-service-size:8000")
     
-    # ThingsBoard
+    # ThingsBoard - Un token por cada modelo
     THINGSBOARD_URL = os.getenv("THINGSBOARD_URL", "https://thingsboard.cloud")
-    TB_PREDICTIONS_TOKEN = os.getenv("TB_PREDICTIONS_TOKEN")
+    TB_PREDICTIONS_COLOR_TOKEN = os.getenv("TB_PREDICTIONS_COLOR_TOKEN")
+    TB_PREDICTIONS_TEXTURE_TOKEN = os.getenv("TB_PREDICTIONS_TEXTURE_TOKEN")
+    TB_PREDICTIONS_SIZE_TOKEN = os.getenv("TB_PREDICTIONS_SIZE_TOKEN")
     
     # WebSocket Gateway
     WEBSOCKET_URL = os.getenv("WEBSOCKET_URL", "http://websocket-gateway:8000")

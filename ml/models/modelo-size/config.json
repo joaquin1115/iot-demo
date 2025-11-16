@@ -1,0 +1,78 @@
+{
+  "data": {
+    "csv_path": "data.csv",
+    "csv_separator": ";",
+    "images_dir": "size",
+    "x_column": "image_w_h",
+    "y_columns": ["width", "height"],
+    "validation_split": 0.2
+  },
+  
+  "preprocessing": {
+    "crop_left_percent": 0.792,
+    "crop_method": "adaptive",
+    "background_removal": true,
+    "edge_detection": true,
+    "min_object_area": 1000
+  },
+  
+  "model": {
+    "img_size": [224, 224],
+    "batch_size": 12,
+    "base_model": "MobileNetV2",
+    "freeze_base": true,
+    "dense_layers": [256, 128, 64],
+    "dropout_rates": [0.5, 0.4, 0.3],
+    "output_activation": "linear"
+  },
+  
+  "training": {
+    "epochs": 200,
+    "learning_rate": 0.0005,
+    "fine_tune_epochs": 50,
+    "fine_tune_lr_factor": 0.1,
+    "fine_tune_unfreeze_layers": 40,
+    
+    "augmentation": {
+      "rotation_range": 3,
+      "width_shift_range": 0.05,
+      "height_shift_range": 0.05,
+      "zoom_range": 0.08,
+      "horizontal_flip": false,
+      "vertical_flip": false,
+      "brightness_range": [0.92, 1.08],
+      "fill_mode": "nearest"
+    },
+    
+    "callbacks": {
+      "early_stopping": {
+        "monitor": "val_loss",
+        "patience": 25,
+        "restore_best_weights": true
+      },
+      "reduce_lr": {
+        "monitor": "val_loss",
+        "factor": 0.5,
+        "patience": 8,
+        "min_lr": 1e-7
+      },
+      "model_checkpoint": {
+        "filepath": "best_modelo_medidor.h5",
+        "monitor": "val_loss",
+        "save_best_only": true
+      }
+    }
+  },
+  
+  "output": {
+    "model_path": "modelo_medidor.h5",
+    "plot_path": "training_history.png",
+    "predictions_csv": "predictions.csv"
+  },
+  
+  "prediction": {
+    "confidence_threshold": 0.0,
+    "save_visualizations": true,
+    "visualization_dir": "predictions_vis"
+  }
+}

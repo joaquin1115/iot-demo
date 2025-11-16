@@ -68,7 +68,7 @@ async def predict_batch(request: PredictBatchRequest):
     """
     Procesa lotes de imágenes con los 3 modelos ML.
     Cada modelo procesa su conjunto específico de imágenes.
-    Envía resultados a ThingsBoard y emite eventos al dashboard.
+    Envía resultados a ThingsBoard (un dispositivo por modelo) y emite eventos al dashboard.
     """
     total_images = len(request.color_images) + len(request.texture_images) + len(request.size_images)
     
@@ -93,6 +93,8 @@ async def predict_batch(request: PredictBatchRequest):
             try:
                 result = await ml_orchestrator.color_client.predict(image_path)
                 if result:
+                    # Agregar timestamp
+                    result["timestamp"] = time.time()
                     predictions["color"].append(result)
             except Exception as e:
                 logger.error(f"Error processing color {image_path}: {e}")
@@ -104,6 +106,8 @@ async def predict_batch(request: PredictBatchRequest):
             try:
                 result = await ml_orchestrator.texture_client.predict(image_path)
                 if result:
+                    # Agregar timestamp
+                    result["timestamp"] = time.time()
                     predictions["texture"].append(result)
             except Exception as e:
                 logger.error(f"Error processing texture {image_path}: {e}")
@@ -115,29 +119,29 @@ async def predict_batch(request: PredictBatchRequest):
             try:
                 result = await ml_orchestrator.size_client.predict(image_path)
                 if result:
+                    # Agregar timestamp
+                    result["timestamp"] = time.time()
                     predictions["size"].append(result)
             except Exception as e:
                 logger.error(f"Error processing size {image_path}: {e}")
     
-    # Preparar datos para ThingsBoard (solo predicciones de color por ahora)
-    tb_data = []
-    for pred in predictions["color"]:
-        tb_record = {
-            "proceso": "prediccion_color",
-            "timestamp": time.time(),
-            **pred  # Incluir todos los campos de la predicción
-        }
-        tb_data.append(tb_record)
+    # Enviar a ThingsBoard - UN DISPOSITIVO POR MODELO
+    tb_results = await tb_client.send_predictions_batch(
+        color_token=settings.TB_PREDICTIONS_COLOR_TOKEN,
+        texture_token=settings.TB_PREDICTIONS_TEXTURE_TOKEN,
+        size_token=settings.TB_PREDICTIONS_SIZE_TOKEN,
+        color_predictions=predictions["color"],
+        texture_predictions=predictions["texture"],
+        size_predictions=predictions["size"]
+    )
     
-    # Enviar a ThingsBoard
-    success = False
-    if tb_data:
-        success = await tb_client.send_predictions(
-            settings.TB_PREDICTIONS_TOKEN,
-            tb_data
-        )
-    else:
-        logger.warning("No valid predictions to send to ThingsBoard")
+    success = any(tb_results.values())  # True si al menos uno tuvo éxito
+    
+    logger.info("")
+    logger.info("📊 ThingsBoard Results:")
+    logger.info(f"   Color sent: {tb_results['color']}")
+    logger.info(f"   Texture sent: {tb_results['texture']}")
+    logger.info(f"   Size sent: {tb_results['size']}")
     
     # Emitir evento al dashboard
     await ws_emitter.emit_event("predictions", {
@@ -145,6 +149,7 @@ async def predict_batch(request: PredictBatchRequest):
         "texture_count": len(predictions["texture"]),
         "size_count": len(predictions["size"]),
         "timestamp": time.time(),
+        "thingsboard": tb_results,
         "sample_predictions": {
             "color": predictions["color"][:3] if predictions["color"] else [],
             "texture": predictions["texture"][:3] if predictions["texture"] else [],

@@ -150,7 +150,6 @@ class ColorPredictor:
                 "prediction": float(clase),
                 "probability": float(prob),
                 "estado": "Quemado" if clase == 1 else "Normal",
-                "confidence": float(prob if clase == 1 else 1 - prob),
                 **color_analysis
             }
             
