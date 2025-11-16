@@ -155,21 +155,29 @@ class ColorPredictor:
             X = self.extract_features(img_rgb)
 
             # Predecir
-            prob = self.model.predict(X, verbose=0)[0][0]
-            clase = int(prob > 0.5)
+            salida_final = float(self.model.predict(X, verbose=0)[0][0])
+            clase = int(salida_final)
+
+            try:
+                penultima = tf.keras.Model(
+                    inputs=self.model.input, outputs=self.model.layers[-2].output
+                )
+                prob_real = float(penultima.predict(X, verbose=0)[0][0])
+            except Exception:
+                prob_real = salida_final
 
             # Análisis de colores
             color_analysis = self.extract_color_analysis(img_rgb, clase)
 
             logger.info(
                 f"Prediction for {os.path.basename(image_path)}: "
-                f"clase={clase}, prob={prob:.4f}"
+                f"clase={clase}, prob_real={prob_real:.4f}, salida_final={salida_final}"
             )
 
             return {
                 "image": os.path.basename(image_path),
-                "prediction": float(clase),
-                "probability": float(prob),
+                "prediction": clase,
+                "probability": salida_final,
                 "estado": "Quemado" if clase == 1 else "Normal",
                 **color_analysis,
             }
