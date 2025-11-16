@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model, Layer
+from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import Layer
 import logging
 from typing import Dict, Tuple
 import os
