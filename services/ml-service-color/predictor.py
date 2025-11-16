@@ -10,20 +10,6 @@ import os
 logger = logging.getLogger(__name__)
 
 
-class ThresholdLayer(Layer):
-    def __init__(self, threshold=0.8, **kwargs):
-        super().__init__(**kwargs)
-        self.threshold = threshold
-
-    def call(self, inputs):
-        return tf.cast(inputs >= self.threshold, tf.float32)
-
-    def get_config(self):
-        config = super().get_config()
-        config.update({"threshold": self.threshold})
-        return config
-
-
 class ColorPredictor:
     def __init__(self, model_path: str):
         """
@@ -36,9 +22,7 @@ class ColorPredictor:
             raise FileNotFoundError(f"Model not found: {model_path}")
 
         logger.info(f"Loading model from {model_path}")
-        self.model = load_model(
-            model_path, custom_objects={"ThresholdLayer": ThresholdLayer}
-        )
+        self.model = load_model(model_path)
         logger.info("✅ Model loaded successfully")
 
     def dividir_en_9(self, img: np.ndarray) -> list:
@@ -133,15 +117,13 @@ class ColorPredictor:
         }
 
     def predict(self, image_path: str) -> Dict:
-        """
-        Predice si el pan está quemado o normal.
+        """Predice si el pan está quemado o normal.
 
-        Args:
-            image_path: Ruta a la imagen
+        Args: image_path: Ruta a la imagen
 
-        Returns:
-            Diccionario con predicción y análisis
+        Returns: Diccionario con predicción y análisis
         """
+
         try:
             # Leer imagen
             img = cv2.imread(image_path)
@@ -155,29 +137,21 @@ class ColorPredictor:
             X = self.extract_features(img_rgb)
 
             # Predecir
-            salida_final = float(self.model.predict(X, verbose=0)[0][0])
-            clase = int(salida_final)
-
-            try:
-                penultima = tf.keras.Model(
-                    inputs=self.model.input, outputs=self.model.layers[-2].output
-                )
-                prob_real = float(penultima.predict(X, verbose=0)[0][0])
-            except Exception:
-                prob_real = salida_final
+            prob = self.model.predict(X, verbose=0)[0][0]
+            clase = int(prob > 0.9)
 
             # Análisis de colores
             color_analysis = self.extract_color_analysis(img_rgb, clase)
 
             logger.info(
                 f"Prediction for {os.path.basename(image_path)}: "
-                f"clase={clase}, prob_real={prob_real:.4f}, salida_final={salida_final}"
+                f"clase={clase}, prob={prob:.4f}"
             )
 
             return {
                 "image": os.path.basename(image_path),
-                "prediction": clase,
-                "probability": salida_final,
+                "prediction": float(clase),
+                "probability": float(prob),
                 "estado": "Quemado" if clase == 1 else "Normal",
                 **color_analysis,
             }
