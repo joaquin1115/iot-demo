@@ -149,61 +149,10 @@ git clone https://github.com/tu-usuario/iot-ml-pan.git
 cd iot-ml-pan
 ```
 
-### 2. Verificar Estructura
-
-```bash
-# Linux/Mac
-./services/verify-setup.sh
-
-# Windows PowerShell
-cd services
-.\verify-setup.ps1
-```
-
-La estructura debe ser:
-
-```
-iot-ml-pan/
-├── ml/
-│   ├── models/
-│   │   ├── modelo_color.h5          ⚠️ REQUERIDO
-│   │   ├── modelo_texture.h5        ⚠️ Opcional
-│   │   ├── modelo_size.h5           ⚠️ Opcional
-│   │   ├── config.json              ⚠️ Para size
-│   │   └── output_scaler.pkl        ⚠️ Para size
-│   └── datasets/
-│       ├── dataset-color/           ⚠️ Min 20 imágenes
-│       ├── dataset-texture/
-│       └── dataset-size/
-│
-└── services/
-    ├── docker-compose.yml
-    ├── .env                         ⚠️ Configurar
-    ├── ingestion-api/
-    ├── scheduler-service/
-    ├── predictor-orchestrator/
-    ├── ml-service-color/
-    ├── ml-service-texture/
-    ├── ml-service-size/
-    ├── websocket-gateway/
-    └── dashboard/
-```
-
 ### 3. Preparar Modelos y Datasets
 
-```bash
-# Crear directorios
-mkdir -p ml/models
-mkdir -p ml/datasets/dataset-color
-
-# Copiar modelos (ajustar rutas)
-cp /ruta/a/modelo_color.h5 ml/models/
-cp /ruta/a/imagenes/*.jpg ml/datasets/dataset-color/
-
-# Verificar
-ls ml/models/modelo_color.h5
-ls ml/datasets/dataset-color/*.jpg | wc -l  # Debe ser >= 20
-```
+1. Descargar los [datasets](https://drive.google.com/drive/folders/1hFguW8BkhPn2aKXaPtJwKgR1yASpYMvY?usp=sharing)
+2. Copiar el contenido en `ml/datasets/`
 
 ---
 
@@ -267,13 +216,6 @@ NUM_IMAGES=20
 ```bash
 # Verificar que Docker está corriendo
 docker info
-
-# Verificar archivos
-ls ml/models/modelo_color.h5
-ls ml/datasets/dataset-color/*.jpg | head -5
-
-# Verificar .env
-cat .env | grep TB_
 ```
 
 ---
@@ -352,7 +294,6 @@ curl -X POST http://localhost:8001/amasado \
   -d '{
     "proceso": "amasado",
     "sensor_id": "amasado_1",
-    "nro_lote": "1",
     "temperature": 25.5,
     "humidity": 65.0,
     "estado": "normal",
@@ -369,7 +310,6 @@ curl -X POST http://localhost:8001/fermentacion \
   -d '{
     "proceso": "fermentacion",
     "sensor_id": "ferment_1",
-    "nro_lote": "1",
     "temperatura": 28.0,
     "humedad": 70.0,
     "co": 5.0,
@@ -407,7 +347,6 @@ Recibe datos del proceso de amasado.
 {
   "proceso": "amasado",
   "sensor_id": "amasado_1",
-  "nro_lote": "1",
   "temperature": 25.5,
   "humidity": 65.0,
   "estado": "normal",
@@ -433,7 +372,6 @@ Recibe datos del proceso de fermentación.
 {
   "proceso": "fermentacion",
   "sensor_id": "ferment_1",
-  "nro_lote": "1",
   "temperatura": 28.0,
   "humedad": 70.0,
   "co": 5.0,
